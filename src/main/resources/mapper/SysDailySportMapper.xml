@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft1851.demo.mapper.SysDailySportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.soft1851.demo.domain.entity.SysDailySport">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="total_sport_number" property="totalSportNumber" />
+        <result column="total_sport_time" property="totalSportTime" />
+        <result column="total_sport_distance" property="totalSportDistance" />
+        <result column="total_sport_average_speed" property="totalSportAverageSpeed" />
+        <result column="sport_date" property="sportDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, total_sport_number, total_sport_time, total_sport_distance, total_sport_average_speed, sport_date
+    </sql>
+
+    <!--本月统计步数-->
+    <select id="getMonthStepNumber"  resultType="int">
+        SELECT COUNT(*) FROM sys_daily_sport
+        WHERE user_id= #{userId}
+        AND total_sport_number &lt;= #{totalSportNumber}
+        AND DATE_FORMAT(sport_date, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+    </select>
+
+    <!--查近一个星期的步数-->
+    <select id="getStepNumber" resultType="com.soft1851.demo.domain.entity.SysDailySport">
+        SELECT * FROM sys_daily_sport
+        WHERE user_id= #{userId}
+          AND DATE_SUB(CURDATE(), INTERVAL 7 DAY) &lt;= sport_date
+          AND sport_date ORDER BY sport_date ASC
+    </select>
+
+    <!--批量插入每天运动的数据（sum求和）-->
+    <insert id="batchInsertSport" parameterType="com.soft1851.demo.domain.entity.SysDailySport">
+        INSERT INTO sys_daily_sport VALUES
+        <foreach collection="sports" item="item" index="index" separator=",">
+            (#{item.id},#{item.userId},#{item.totalSportNumber},#{item.totalSportTime},
+            #{item.totalSportDistance},#{item.totalSportAverageSpeed},#{item.sportDate})
+        </foreach>
+    </insert>
+
+    <!--统计本月全部步数和距离-->
+    <select id="numSport"  parameterType="Long" resultType="com.soft1851.demo.domain.dto.SysDailySportDto">
+        SELECT user_id,SUM(total_sport_number) AS total_sport_number,
+               SUM(total_sport_distance) AS total_sport_distance FROM sys_daily_sport
+        WHERE user_id= #{userId}
+          AND DATE_FORMAT(sport_date, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+    </select>
+</mapper>

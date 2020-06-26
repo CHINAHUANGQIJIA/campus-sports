@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft1851.demo.mapper.SysSportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.soft1851.demo.domain.entity.SysSport">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="step_number" property="stepNumber" />
+        <result column="sport_date" property="sportDate" />
+        <result column="sport_time" property="sportTime" />
+        <result column="sport_distance" property="sportDistance" />
+        <result column="sport_average_speed" property="sportAverageSpeed" />
+        <result column="sport_url" property="sportUrl" />
+        <result column="sport_pattern" property="sportPattern" />
+        <result column="gmt_create" property="gmtCreate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, step_number, sport_date, sport_time, sport_distance, sport_average_speed, sport_url, sport_pattern, gmt_create
+    </sql>
+
+
+    <!--查用户运动的记录（按时间降序排序）-->
+    <select id="getSelectSport" parameterType="Long" resultType="com.soft1851.demo.domain.entity.SysSport">
+        SELECT * FROM sys_sport
+        WHERE user_id = #{userId}
+          AND gmt_create ORDER BY gmt_create DESC
+    </select>
+
+    <select id="selectSport" resultType="com.soft1851.demo.domain.entity.SysDailySport">
+        SELECT user_id,sport_date,SUM(step_number) AS total_sport_number,
+               SUM(sport_time) AS total_sport_time,
+               SUM(sport_distance) AS total_sport_distance,
+               AVG(sport_average_speed) AS total_sport_average_speed	FROM sys_sport
+        WHERE TO_DAYS(gmt_create) = TO_DAYS(NOW())
+        GROUP BY user_id
+        HAVING SUM(step_number)
+           AND SUM(sport_distance)
+           AND AVG(sport_average_speed)
+    </select>
+
+    <select id="sumSport"  parameterType="Long" resultType="com.soft1851.demo.domain.vo.SysSportVo">
+        SELECT user_id,sport_date,SUM(step_number) AS total_sport_number,
+               SUM(sport_time) AS total_sport_time,
+               SUM(sport_distance) AS total_sport_distance,
+               AVG(sport_average_speed) AS total_sport_average_speed	FROM sys_sport
+        WHERE user_id = 1
+          AND TO_DAYS(gmt_create) = TO_DAYS(NOW())
+        GROUP BY user_id
+        HAVING SUM(step_number)
+           AND SUM(sport_distance)
+           AND AVG(sport_average_speed)
+    </select>
+</mapper>
